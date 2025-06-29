@@ -3,21 +3,30 @@
 #include <cmath>
 #include <limits>
 
-double Calculo::calcularDistanciaEuclidiana(const Local& local1, const Local& local2) {
+using namespace std;
+
+// Função para calcular distância euclidiana entre dois locais
+double Calculo::calcularDistanciaEuclidiana(const Local &local1, const Local &local2)
+{
     int deltaX = local1.getCoordXLocal() - local2.getCoordXLocal();
     int deltaY = local1.getCoordYLocal() - local2.getCoordYLocal();
     return sqrt(deltaX * deltaX + deltaY * deltaY);
 }
 
-Veiculo* Calculo::encontrarVeiculoMaisProximo(const std::vector<Veiculo>& veiculos, const Local& localOrigem) {
-    Veiculo* veiculoMaisProximo = nullptr;
-    double menorDistancia = std::numeric_limits<double>::max();
+// Função para encontrar o veículo disponível mais próximo de um local
+Veiculo *Calculo::encontrarVeiculoMaisProximo(const vector<Veiculo> &veiculos, const Local &localOrigem)
+{
+    Veiculo *veiculoMaisProximo = nullptr;
+    double menorDistancia = numeric_limits<double>::max();
 
-    for (auto& veiculo : const_cast<std::vector<Veiculo>&>(veiculos)) {
-        if (veiculo.getDisponibilidade()) {
+    for (auto &veiculo : const_cast<vector<Veiculo> &>(veiculos))
+    {
+        if (veiculo.getDisponibilidade())
+        {
             Local localVeiculo = veiculo.getLocalAtual();
             double distancia = calcularDistanciaEuclidiana(localVeiculo, localOrigem);
-            if (distancia < menorDistancia) {
+            if (distancia < menorDistancia)
+            {
                 menorDistancia = distancia;
                 veiculoMaisProximo = &veiculo;
             }
@@ -27,39 +36,46 @@ Veiculo* Calculo::encontrarVeiculoMaisProximo(const std::vector<Veiculo>& veicul
     return veiculoMaisProximo;
 }
 
-void Calculo::calcularRotaEntrega(std::vector<Pedido>& pedidos, std::vector<Veiculo>& veiculos) {
-    if (pedidos.empty()) {
-        std::cout << "\nNenhum pedido foi cadastrado." << std::endl;
+// Função principal para calcular e exibir a rota de entrega
+void Calculo::calcularRotaEntrega(vector<Pedido> &pedidos, vector<Veiculo> &veiculos)
+{
+    if (pedidos.empty())
+    {
+        cout << "\nNenhum pedido foi cadastrado." << endl;
         return;
     }
 
-    std::cout << "\n===== PEDIDOS PENDENTES =====" << std::endl;
+    cout << "\n===== PEDIDOS PENDENTES =====" << endl;
     int contador = 1;
-    for (const auto& pedido : pedidos) {
-        if (!pedido.getPendente()) continue;
+    for (const auto &pedido : pedidos)
+    {
+        if (!pedido.getPendente())
+            continue;
 
-        std::cout << "\nPedido " << contador << ":" << std::endl;
-        std::cout << "ID: " << pedido.getIdentificadorUnico() << std::endl;
-        std::cout << "Origem: " << pedido.getLocalOrigem()->getNomeLocal() << std::endl;
-        std::cout << "Destino: " << pedido.getLocalDestino()->getNomeLocal() << std::endl;
-        std::cout << "Peso: " << pedido.getPesoItem() << " kg" << std::endl;
+        cout << "\nPedido " << contador << ":" << endl;
+        cout << "ID: " << pedido.getIdentificadorUnico() << endl;
+        cout << "Origem: " << pedido.getLocalOrigem()->getNomeLocal() << endl;
+        cout << "Destino: " << pedido.getLocalDestino()->getNomeLocal() << endl;
+        cout << "Peso: " << pedido.getPesoItem() << " kg" << endl;
         contador++;
     }
 
     int escolhaPedido;
-    std::cout << "\nEscolha o número do pedido para calcular a rota: ";
-    std::cin >> escolhaPedido;
+    cout << "\nEscolha o número do pedido para calcular a rota: ";
+    cin >> escolhaPedido;
 
-    if (escolhaPedido < 1 || escolhaPedido > (int)pedidos.size()) {
-        std::cout << "\nPedido inválido!" << std::endl;
+    if (escolhaPedido < 1 || escolhaPedido > (int)pedidos.size())
+    {
+        cout << "\nPedido inválido!" << endl;
         return;
     }
 
-    Pedido& pedidoSelecionado = pedidos[escolhaPedido - 1];
-    Veiculo* veiculoMaisProximo = encontrarVeiculoMaisProximo(veiculos, *pedidoSelecionado.getLocalOrigem());
+    Pedido &pedidoSelecionado = pedidos[escolhaPedido - 1];
+    Veiculo *veiculoMaisProximo = encontrarVeiculoMaisProximo(veiculos, *pedidoSelecionado.getLocalOrigem());
 
-    if (veiculoMaisProximo == nullptr) {
-        std::cout << "\nNenhum veículo disponível encontrado!" << std::endl;
+    if (veiculoMaisProximo == nullptr)
+    {
+        cout << "\nNenhum veículo disponível encontrado!" << endl;
         return;
     }
 
@@ -68,35 +84,36 @@ void Calculo::calcularRotaEntrega(std::vector<Pedido>& pedidos, std::vector<Veic
     double distanciaOrigemDestino = calcularDistanciaEuclidiana(*pedidoSelecionado.getLocalOrigem(), *pedidoSelecionado.getLocalDestino());
     double distanciaTotal = distanciaVeiculoOrigem + distanciaOrigemDestino;
 
-    std::cout << "\n===== ROTA DE ENTREGA CALCULADA =====" << std::endl;
-    std::cout << "Veículo selecionado: " << veiculoMaisProximo->getPlaca() << " (" << veiculoMaisProximo->getModelo() << ")" << std::endl;
-    std::cout << "Local atual do veículo: " << localVeiculo.getNomeLocal() << std::endl;
-    std::cout << "Local de origem do pedido: " << pedidoSelecionado.getLocalOrigem()->getNomeLocal() << std::endl;
-    std::cout << "Local de destino do pedido: " << pedidoSelecionado.getLocalDestino()->getNomeLocal() << std::endl;
-    std::cout << "Distância até a origem: " << distanciaVeiculoOrigem << " unidades" << std::endl;
-    std::cout << "Distância origem-destino: " << distanciaOrigemDestino << " unidades" << std::endl;
-    std::cout << "Distância total percorrida: " << distanciaTotal << " unidades" << std::endl;
+    cout << "\n===== ROTA DE ENTREGA CALCULADA =====" << endl;
+    cout << "Veículo selecionado: " << veiculoMaisProximo->getPlaca() << " (" << veiculoMaisProximo->getModelo() << ")" << endl;
+    cout << "Local atual do veículo: " << localVeiculo.getNomeLocal() << endl;
+    cout << "Local de origem do pedido: " << pedidoSelecionado.getLocalOrigem()->getNomeLocal() << endl;
+    cout << "Local de destino do pedido: " << pedidoSelecionado.getLocalDestino()->getNomeLocal() << endl;
+    cout << "Distância até a origem: " << distanciaVeiculoOrigem << " unidades" << endl;
+    cout << "Distância origem-destino: " << distanciaOrigemDestino << " unidades" << endl;
+    cout << "Distância total percorrida: " << distanciaTotal << " unidades" << endl;
 
     char confirmar;
-    std::cout << "\nDeseja simular a entrega? (s/n): ";
-    std::cin >> confirmar;
+    cout << "\nDeseja simular a entrega? (s/n): ";
+    cin >> confirmar;
 
-    if (confirmar == 's' || confirmar == 'S') {
+    if (confirmar == 's' || confirmar == 'S')
+    {
         veiculoMaisProximo->setDisponibilidade(false);
-        std::cout << "\nSimulando entrega..." << std::endl;
-        std::cout << "Veículo " << veiculoMaisProximo->getPlaca() << " agora está OCUPADO." << std::endl;
+        cout << "\nSimulando entrega..." << endl;
+        cout << "Veículo " << veiculoMaisProximo->getPlaca() << " agora está OCUPADO." << endl;
 
         pedidoSelecionado.setPendente(false);
-        std::cout << "Entrega concluída com sucesso!" << std::endl;
+        cout << "Entrega concluída com sucesso!" << endl;
 
         veiculoMaisProximo->setLocalAtual(*pedidoSelecionado.getLocalDestino());
         veiculoMaisProximo->setDisponibilidade(true);
 
-        std::cout << "Veículo " << veiculoMaisProximo->getPlaca() << " agora está DISPONÍVEL." << std::endl;
-        std::cout << "Local atual do veículo atualizado para: " << pedidoSelecionado.getLocalDestino()->getNomeLocal() << std::endl;
+        cout << "Veículo " << veiculoMaisProximo->getPlaca() << " agora está DISPONÍVEL." << endl;
+        cout << "Local atual do veículo atualizado para: " << pedidoSelecionado.getLocalDestino()->getNomeLocal() << endl;
 
         // Remove pedido da lista
         pedidos.erase(pedidos.begin() + (escolhaPedido - 1));
-        std::cout << "Pedido removido da lista de pendentes." << std::endl;
+        cout << "Pedido removido da lista de pendentes." << endl;
     }
 }

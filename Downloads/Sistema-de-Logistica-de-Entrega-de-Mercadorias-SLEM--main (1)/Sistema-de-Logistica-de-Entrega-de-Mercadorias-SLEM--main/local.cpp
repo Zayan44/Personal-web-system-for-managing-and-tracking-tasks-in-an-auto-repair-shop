@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
+#include <fstream>
 
 #define INPUTMAXNOME 200
 
@@ -19,12 +20,12 @@ Local::Local(const char *nomeLocal, int coordXLocal, int coordYlocal)
     this->coordYLocal = coordYlocal;
 }
 
-Local::Local() {
+Local::Local()
+{
     strcpy(nomeLocal, ""); // nome vazio
     coordXLocal = 0;
     coordYLocal = 0;
 }
-
 
 // Getters
 const char *Local::getNomeLocal() const
@@ -42,7 +43,8 @@ int Local::getCoordYLocal() const
     return this->coordYLocal;
 }
 
-vector<Local>& Local::getLocais() {
+vector<Local> &Local::getLocais()
+{
     return locais;
 }
 
@@ -64,7 +66,7 @@ void Local::setCoordYLocal(int coordYLocal)
 }
 
 // Função para cadastro de locais
- void Local::cadastroLocal()
+void Local::cadastroLocal()
 {
 
     char inputNomeLocal[INPUTMAXNOME];
@@ -91,7 +93,7 @@ void Local::setCoordYLocal(int coordYLocal)
     locais.push_back(novoLocal);
 
     cout << endl
-<< "Local cadastrado com sucesso!" << endl;
+         << "Local cadastrado com sucesso!" << endl;
 }
 
 // Função para listar locais
@@ -230,4 +232,37 @@ void Local::deletarLocal()
     {
         cout << "Local não encontrado";
     }
+}
+
+void Local::salvarLocaisEmArquivoBinario()
+{
+    ofstream arquivo("locais.dat", ios::binary);
+
+    for (const auto &local : Local::getLocais())
+    {
+        arquivo.write((char *)&local, sizeof(Local));
+    }
+
+    arquivo.close();
+    cout << "Backup de locais concluído.\n";
+}
+
+void Local::carregarLocaisDeArquivoBinario()
+{
+    ifstream arquivo("locais.dat", ios::binary);
+    if (!arquivo)
+    {
+        cout << "Nenhum arquivo de backup de locais encontrado.\n";
+        return;
+    }
+
+    locais.clear();
+    Local temp;
+    while (arquivo.read((char *)&temp, sizeof(Local)))
+    {
+        locais.push_back(temp);
+    }
+
+    arquivo.close();
+    cout << "Restauração de locais concluída.\n";
 }

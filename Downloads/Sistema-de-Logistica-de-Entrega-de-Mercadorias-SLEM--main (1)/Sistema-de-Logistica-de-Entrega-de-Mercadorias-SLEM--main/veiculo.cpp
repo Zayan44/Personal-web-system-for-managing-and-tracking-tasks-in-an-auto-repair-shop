@@ -5,6 +5,7 @@
 #include <vector>
 #include <locale.h>
 #include <cstring>
+#include <fstream>
 
 #define INPUTMAXPLACA 8
 
@@ -13,6 +14,15 @@ using namespace std;
 vector<Veiculo> Veiculo::veiculos;
 
 // Construtor
+
+Veiculo::Veiculo()
+{
+    strcpy(placa, "");
+    strcpy(modelo, "");
+    disponivel = true;
+    localAtual = nullptr; // Inicializa como nulo
+}
+
 Veiculo::Veiculo(const char *p, const char *m, bool d, const Local &l)
 {
     strcpy(placa, p);
@@ -26,7 +36,7 @@ const char *Veiculo::getPlaca() const { return placa; }
 const char *Veiculo::getModelo() const { return modelo; }
 bool Veiculo::getDisponibilidade() const { return disponivel; }
 Local Veiculo::getLocalAtual() const { return *localAtual; }
-vector<Veiculo>& Veiculo::getVeiculos() { return veiculos;}
+vector<Veiculo> &Veiculo::getVeiculos() { return veiculos; }
 // Setters
 void Veiculo::setPlaca(const char *p) { strcpy(this->placa, p); }
 void Veiculo::setModelo(const char *m) { strcpy(modelo, m); }
@@ -78,15 +88,16 @@ void Veiculo::cadastrarVeiculo()
 
     Local localEncontrado;
 
-    for (const auto &local : Local::getLocais()) {
-    if (strcmp(local.getNomeLocal(), nomeLocal) == 0) {
-        localEncontrado = local; // cópia correta com as coordenadas reais
-        break;
+    for (const auto &local : Local::getLocais())
+    {
+        if (strcmp(local.getNomeLocal(), nomeLocal) == 0)
+        {
+            localEncontrado = local; // cópia correta com as coordenadas reais
+            break;
+        }
     }
-}
 
-Veiculo novoVeiculo(inputPlaca, inputModelo, inputDisponivel, localEncontrado);
-
+    Veiculo novoVeiculo(inputPlaca, inputModelo, inputDisponivel, localEncontrado);
 
     cout << "Veiculo cadastrado com sucesso!\n";
     veiculos.push_back(novoVeiculo);
@@ -256,4 +267,37 @@ void Veiculo::deletarVeiculo()
     }
 
     cout << "Veiculo com placa " << inputPlaca << " não encontrado.\n";
+}
+
+void Veiculo::salvarVeiculosEmArquivoBinario()
+{
+    ofstream arquivo("veiculos.dat", ios::binary);
+
+    for (const auto &veiculo : veiculos)
+    {
+        arquivo.write((char *)&veiculo, sizeof(Veiculo));
+    }
+
+    arquivo.close();
+    cout << "Backup de veículos concluído.\n";
+}
+
+void Veiculo::carregarVeiculosDeArquivoBinario()
+{
+    ifstream arquivo("veiculos.dat", ios::binary);
+    if (!arquivo)
+    {
+        cout << "Nenhum arquivo de backup de veículos encontrado.\n";
+        return;
+    }
+
+    veiculos.clear();
+    Veiculo temp;
+    while (arquivo.read((char *)&temp, sizeof(Veiculo)))
+    {
+        veiculos.push_back(temp);
+    }
+
+    arquivo.close();
+    cout << "Restauração de veículos concluída.\n";
 }
